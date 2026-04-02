@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trắc nghiệm Sắp xếp câu - Reading Part 2+3</title>
     <style>
         body {
@@ -68,7 +68,8 @@
         .draggable-item:active {
             cursor: grabbing;
         }
-        .draggable-item.dragging {
+        /* Class này SortableJS sẽ tự dùng khi đang cầm 1 khối */
+        .dragging {
             opacity: 0.5;
             background-color: #bdc3c7;
         }
@@ -128,6 +129,8 @@
     
     <button class="hint-btn" onclick="toggleHint()">Xem câu chuyện gợi ý (Mẹo nhớ)</button>
     <div id="hintBox" class="hint"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <script>
         const quizData = {
@@ -247,6 +250,15 @@
                 topicSelect.appendChild(option);
             }
             loadTopic();
+
+            // Khởi tạo tính năng kéo thả mượt mà bằng SortableJS
+            new Sortable(listContainer, {
+                animation: 150, // Thời gian hiệu ứng dạt ra (150ms)
+                ghostClass: 'dragging', // Kế thừa class CSS cũ của bạn
+                onStart: function (evt) {
+                    clearColors(); // Xóa viền màu cũ khi bắt đầu kéo
+                }
+            });
         }
 
         function shuffle(array) {
@@ -278,9 +290,7 @@
             shuffledSentences.forEach(sentence => {
                 const div = document.createElement('div');
                 div.classList.add('draggable-item');
-                div.setAttribute('draggable', 'true');
                 div.textContent = sentence;
-                addDragEvents(div);
                 listContainer.appendChild(div);
             });
         }
@@ -299,77 +309,6 @@
                 item.classList.remove('correct', 'incorrect');
             });
             resultDiv.textContent = ""; // Xóa dòng thông báo điểm
-        }
-
-        let draggedItem = null;
-
-        function addDragEvents(item) {
-            item.addEventListener('dragstart', function(e) {
-                draggedItem = item;
-                clearColors(); // Xóa viền màu khi bắt đầu kéo lại
-                setTimeout(() => item.classList.add('dragging'), 0);
-            });
-
-            item.addEventListener('dragend', function() {
-                draggedItem.classList.remove('dragging');
-                draggedItem = null;
-            });
-            
-            item.addEventListener('touchstart', handleTouchStart, {passive: true});
-            item.addEventListener('touchmove', handleTouchMove, {passive: false});
-            item.addEventListener('touchend', handleTouchEnd);
-        }
-
-        let touchStartY = 0;
-        function handleTouchStart(e) {
-            draggedItem = e.target;
-            touchStartY = e.touches[0].clientY;
-            clearColors(); // Xóa viền màu khi bắt đầu chạm
-            setTimeout(() => draggedItem.classList.add('dragging'), 0);
-        }
-
-        function handleTouchMove(e) {
-            if (!draggedItem) return;
-            e.preventDefault(); 
-            const touchY = e.touches[0].clientY;
-            const afterElement = getDragAfterElement(listContainer, touchY);
-            if (afterElement == null) {
-                listContainer.appendChild(draggedItem);
-            } else {
-                listContainer.insertBefore(draggedItem, afterElement);
-            }
-        }
-
-        function handleTouchEnd() {
-            if(draggedItem) {
-                draggedItem.classList.remove('dragging');
-                draggedItem = null;
-            }
-        }
-
-        listContainer.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            const afterElement = getDragAfterElement(listContainer, e.clientY);
-            const dragging = document.querySelector('.dragging');
-            if (dragging && afterElement == null) {
-                listContainer.appendChild(dragging);
-            } else if (dragging) {
-                listContainer.insertBefore(dragging, afterElement);
-            }
-        });
-
-        function getDragAfterElement(container, y) {
-            const draggableElements = [...container.querySelectorAll('.draggable-item:not(.dragging)')];
-
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
         }
 
         // --- Cập nhật logic chấm điểm & bôi màu ---
