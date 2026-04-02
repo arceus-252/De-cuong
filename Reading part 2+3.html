@@ -391,10 +391,10 @@
             });
 
             if (correctCount === totalQuestions) {
-                resultDiv.textContent = `Tuyệt vời! Bạn đã sắp xếp đúng ${correctCount}/${totalQuestions} câu. 🎉`;
+                resultDiv.textContent = `Tuyệt vời! Đúng hết ${correctCount}/${totalQuestions} câu rồi. congratulation 🎉`;
                 resultDiv.className = "success";
             } else {
-                resultDiv.textContent = `Bạn đúng được ${correctCount}/${totalQuestions} câu. Các câu bôi đỏ đang sai vị trí, hãy thử kéo lại nhé!`;
+                resultDiv.textContent = `Mới đúng được ${correctCount}/${totalQuestions} câu thôi. Làm lại đê :>>!`;
                 resultDiv.className = "error";
             }
         }
