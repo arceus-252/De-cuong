@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aptis Reading Part 5 - Full Practice</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: 20px auto; padding: 20px; background-color: #f4f7f6; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        h1 { color: #2563eb; text-align: center; margin-bottom: 25px; }
+        .topic-selector { margin-bottom: 25px; text-align: center; background: #eff6ff; padding: 20px; border-radius: 10px; }
+        .question-row { display: flex; align-items: center; margin-bottom: 15px; padding: 15px; border-radius: 10px; background: #fff; border: 1px solid #e2e8f0; transition: 0.2s; }
+        .question-number { font-weight: bold; width: 100px; color: #475569; }
+        select { flex-grow: 1; padding: 12px; border-radius: 8px; border: 2px solid #cbd5e1; font-size: 15px; outline: none; }
+        select.correct { border-color: #22c55e; background-color: #f0fdf4; }
+        select.wrong { border-color: #ef4444; background-color: #fef2f2; }
+        
+        .btn-group { display: flex; justify-content: center; gap: 15px; margin-top: 30px; }
+        .btn { border: none; padding: 12px 25px; border-radius: 30px; font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-check { background-color: #2563eb; color: white; }
+        .btn-hint { background-color: #10b981; color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* Khung thông báo kết quả mới */
+        .feedback-message { text-align: center; margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.1em; display: none; transition: 0.3s; }
+        .feedback-success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; display: block; }
+        .feedback-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; display: block; }
+
+        .hint-section { display: none; margin-top: 20px; padding: 20px; background-color: #fffbeb; border-left: 6px solid #f59e0b; border-radius: 8px; }
+        .hint-title { font-weight: bold; color: #b45309; font-size: 1.1em; margin-bottom: 8px; display: block; }
+        #topicTitle { color: #1e40af; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Luyện Aptis Reading Part 5</h1>
+
+    <div class="topic-selector">
+        <label for="topic"><strong>Chọn bài đang học:</strong> </label>
+        <select id="topic" onchange="loadTopic()">
+            <option value="0">Topic 1: The arrival of four-day week</option>
+            <option value="1">Topic 2: Mountain Summits</option>
+            <option value="2">Topic 3: Woman Mathematics</option>
+        </select>
+    </div>
+
+    <h2 id="topicTitle"></h2>
+
+    <div id="quizContent">
+        </div>
+
+    <div class="btn-group">
+        <button class="btn btn-check" onclick="checkAnswers()">Kiểm tra đáp án</button>
+        <button class="btn btn-hint" onclick="toggleHint()" id="btnText">Hiện Mẹo & Thần chú</button>
+    </div>
+
+    <div id="feedbackMessage" class="feedback-message"></div>
+
+    <div class="hint-section" id="hintBox">
+        <span class="hint-title">💡 Bí kíp ghi nhớ:</span>
+        <div id="hintText"></div>
+    </div>
+</div>
+
+<script>
+    const data = [
+        {
+            title: "Topic 1: The arrival of four-day week",
+            options: [
+                "A way of life now out of date",
+                "Benefits for employees",
+                "Undesirable financial consequences",
+                "Unforeseen challenges for employees",
+                "Difficult to give up old habits",
+                "An unfair plan for some people",
+                "Alternative solutions worth considering"
+            ],
+            hint: "<strong>Từ khóa:</strong> Life – Benefits – financial – challenges – Difficult – people – solutions.<br><strong>Thần chú:</strong> Linh - buộc - phải - chờ - được - phòng - sạch."
+        },
+        {
+            title: "Topic 2: Mountain Summits",
+            options: [
+                "Our changing definition of mountains",
+                "A unique sense of achievement",
+                "Publicising one's achievements",
+                "The wrong priority",
+                "A disturbing revelation",
+                "A focus on sustainability",
+                "A more intimate relationship"
+            ],
+            hint: "<strong>Từ khóa:</strong> Mountains – achievement – Publicising – wrong – disturbing – sustainability - relationship.<br><strong>Thần chú:</strong> Mai - anh - phải - Q(W)ua - đó - sớm - rồi."
+        },
+        {
+            title: "Topic 3: Woman Mathematics",
+            options: [
+                "Gender obscure achievements",
+                "Acknowledging achievement of a pioneer",
+                "Man unfairly credited",
+                "A long career showing exceptional ability",
+                "Labels can change perspective on people",
+                "Attempting to create a gender balance",
+                "Uniformity is not always beneficial"
+            ],
+            hint: "<strong>Từ khóa:</strong> Obscure – pioneer – Man – career – Labels – balance – Uniformity.<br><strong>Thần chú:</strong> Ông – Pio – muốn – có – lon – bia – uống."
+        }
+    ];
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function loadTopic() {
+        const index = document.getElementById('topic').value;
+        const topic = data[index];
+        
+        document.getElementById('topicTitle').innerText = topic.title;
+        document.getElementById('hintText').innerHTML = topic.hint;
+        
+        // Ẩn Mẹo và Thông báo kết quả khi đổi bài
+        document.getElementById('hintBox').style.display = 'none';
+        document.getElementById('btnText').innerText = 'Hiện Mẹo & Thần chú';
+        document.getElementById('feedbackMessage').className = 'feedback-message';
+        
+        const shuffledOptions = shuffle([...topic.options]);
+        
+        let html = "";
+        for (let i = 0; i < 7; i++) {
+            html += `
+                <div class="question-row">
+                    <div class="question-number">Đoạn ${i + 1}</div>
+                    <select class="answer-select" data-correct="${topic.options[i]}">
+                        <option value="">-- Chọn đáp án --</option>
+                        ${shuffledOptions.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+        }
+        document.getElementById('quizContent').innerHTML = html;
+    }
+
+    function checkAnswers() {
+        const selects = document.querySelectorAll('.answer-select');
+        let allCorrect = true;
+        let allAnswered = true;
+
+        selects.forEach(select => {
+            const correctValue = select.getAttribute('data-correct');
+            
+            if (select.value === "") {
+                allCorrect = false;
+                allAnswered = false;
+                select.classList.remove('correct', 'wrong');
+            } else if (select.value === correctValue) {
+                select.classList.remove('wrong');
+                select.classList.add('correct');
+            } else {
+                select.classList.remove('correct');
+                select.classList.add('wrong');
+                allCorrect = false;
+            }
+        });
+
+        const feedbackDiv = document.getElementById('feedbackMessage');
+        
+        // Cập nhật text và màu nền thay vì dùng alert
+        if (allCorrect && allAnswered) {
+            feedbackDiv.textContent = "Đúng hết rồi, sang topic khác đê! 🎉";
+            feedbackDiv.className = "feedback-message feedback-success";
+        } else {
+            feedbackDiv.textContent = "Làm lại đê, chưa đúng hết :>>";
+            feedbackDiv.className = "feedback-message feedback-error";
+        }
+    }
+
+    function toggleHint() {
+        const hintBox = document.getElementById('hintBox');
+        const btn = document.getElementById('btnText');
+        if (hintBox.style.display === 'none') {
+            hintBox.style.display = 'block';
+            btn.innerText = 'Ẩn Mẹo & Thần chú';
+        } else {
+            hintBox.style.display = 'none';
+            btn.innerText = 'Hiện Mẹo & Thần chú';
+        }
+    }
+
+    window.onload = loadTopic;
+</script>
+
+</body>
+</html>
