@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện Writing Aptis</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 { color: #2c3e50; text-align: center; }
+        input[type="password"], textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover { background: #2980b9; }
+        #ketQua {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 5px solid #2ecc71;
+            border-radius: 0 6px 6px 0;
+            display: none;
+            white-space: pre-wrap;
+        }
+    </style>
+
+    <script>
+        const matKhauDung = "Bsi Hiep B2 Aptis"; // Bạn có thể đổi mật khẩu ở đây
+        let matKhauNhapVao = prompt("Dừng lại! Nhập mật khẩu để vào web học:");
+        
+        if (matKhauNhapVao !== matKhauDung) {
+            document.write("<h1 style='text-align:center; margin-top:100px; color:red;'>Lêu lêu, không có mật khẩu thì không được xem! 😛</h1>");
+            window.stop(); 
+        }
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <h2>✍️ Writing B1 đê b ơi <br>
+
+         <strong> Lưu ý: </strong> Mỗi lần ấn nộp bài phải cách nhau ít nhất 10 phút, <br> nên là xem xong bài sửa thì ra phần khác làm rồi quay lại sau.</h2>
+        <div id="timer"> 10:00 </div>
+        <label for="geminiApiKey"><strong>Mã bí mật (API Key):</strong></label>
+        <input type="password" id="geminiApiKey" placeholder="Dán API Key copy từ AI Studio vào đây...">
+        
+       <div style="margin-bottom: 15px;">
+    <label for="chonClub"><strong>📚 Chọn câu lạc bộ (Part 2):</strong></label>
+    <select id="chonClub" onchange="doiDeBai()" style="width: 100%; padding: 10px; border-radius: 6px; font-family: inherit; margin-top: 5px; border: 1px solid #3498db;">
+        <option value="travel">✈️ Travel Club</option>
+        <option value="art">🎨 Art Club</option>
+        <option value="food">🍔 Food Club</option>
+        <option value="book">📖 Book Club</option>
+        <option value="technology">💻 Technology Club</option>
+        <option value="sports">🏃‍♂️ Sports Club</option>
+        </select>
+</div>
+<script>
+    (function() {
+        var duration = 60 * 5; // 10 phút tính bằng giây
+        var display = document.querySelector('#timer');
+        var timer = duration, minutes, seconds;
+
+        // Hàm chạy đếm ngược
+        var countdown = setInterval(function () {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            if (display) {
+                display.textContent = minutes + ":" + seconds;
+            }
+
+            if (--timer < 0) {
+                clearInterval(countdown);
+                display.textContent = "Cbi nộp bài đê!";
+                display.style.color = "#2ecc71";
+            }
+        }, 1000);
+    })();
+</script>
+<div style="background: #eef2f5; padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 5px solid #d35400;">
+    <strong>📝 Nhiệm vụ:</strong><br>
+    You are a member of a <span id="tenClubHienThi" style="font-weight: bold; color: #d35400;">travel club</span>. Fill in the form. Write in sentences. Use 20-30 words. You have 5 minutes.<br><br>
+        <em id="noidungDeBai" style="color: #2c3e50; font-size: 1.1em;">"Please tell us why you joined the travel club and what you hope to do here."</em>
+        </div>
+        <textarea id="baiViet" rows="8" placeholder="Gõ bài làm của bạn vào đây..." oninput="demTu()"></textarea>
+        <div style="text-align: right; font-size: 14px; color: #7f8c8d; margin-top: 5px; margin-bottom: 15px;">
+            Số từ đã gõ: <strong id="soTu" style="color: #2980b9;">0</strong>
+        </div>
+        
+        <button id="btnNopBai" onclick="chamBaiWriting()">🚀 Nộp bài & Chấm điểm</button>
+        
+        <div id="ketQua"></div>
+    </div>
+
+    <script>
+// 1. Kho dữ liệu chứa câu hỏi của các Club
+        const khoDeBai = {
+            "travel": {
+                ten: "travel club",
+                cauHoi: "Please tell us why you joined the travel club and what you hope to do here."
+            },
+            "art": {
+                ten: "art club",
+                cauHoi: "Tell me a painting or a photo that you like."
+            },
+            "food": {
+                ten: "food club",
+                cauHoi: "Please tell us about your favorite food and why you want to join this cooking/food club."
+            },
+            "book": {
+                ten: "book club",
+                cauHoi: "Please tell us what kind of books you like to read and how often you read."
+            },
+            "technology": {
+                ten: "technology club",
+                cauHoi: "Please tell us what piece of technology is most important to you and why."
+            },
+            "sports": {
+                ten: "sports club",
+                cauHoi: "Please tell us what sports you play and why you think playing sports is good for you."
+            }
+        };
+
+        // 2. Hàm tự động đổi đề khi chọn menu
+        function doiDeBai() {
+            const clubDuocChon = document.getElementById('chonClub').value;
+            const thongTinDe = khoDeBai[clubDuocChon];
+            
+            // Đổi tên club và câu hỏi trên màn hình
+            document.getElementById('tenClubHienThi').innerText = thongTinDe.ten;
+            document.getElementById('noidungDeBai').innerText = `"${thongTinDe.cauHoi}"`;
+            
+            // Xóa trắng ô làm bài để gõ bài mới
+            document.getElementById('baiViet').value = "";
+            document.getElementById('soTu').innerText = "0";
+            document.getElementById('ketQua').style.display = "none";
+        }
+       // 1. HÀM ĐẾM TỪ
+        function demTu() {
+            const text = document.getElementById('baiViet').value.trim();
+            const wordCount = text === "" ? 0 : text.split(/\s+/).length;
+            document.getElementById('soTu').innerText = wordCount;
+        }
+        // 2. Tự động điền API Key nếu đã lưu từ trước
+        window.onload = function() {
+            const savedKey = localStorage.getItem('myGeminiKey');
+            if(savedKey) document.getElementById('geminiApiKey').value = savedKey;
+        };
+
+        async function chamBaiWriting() {
+            const apiKey = document.getElementById('geminiApiKey').value.trim();
+            const baiViet = document.getElementById('baiViet').value.trim();
+            const ketQuaDiv = document.getElementById('ketQua');
+            const btn = document.getElementById('btnNopBai');
+
+            if (!apiKey) return alert("Ê, quên nhập mã bí mật (API Key) kìa!");
+            if (!baiViet) return alert("Bạn chưa viết chữ nào cả!");
+
+            // Lưu Key vào trình duyệt
+            localStorage.setItem('myGeminiKey', apiKey);
+
+            // Hiệu ứng đang chấm bài
+            btn.disabled = true;
+            btn.innerText = "⏳ Cái này hơi lâu, khoảng 1 phút b ơii...";
+            ketQuaDiv.style.display = "block";
+            ketQuaDiv.innerHTML = "<em>Đang gửi bài cho giám khảo...</em>";
+
+            // Prompt đóng vai giám khảo Aptis
+            const clubHienTai = document.getElementById('chonClub').value;
+            const cauHoiHienTai = khoDeBai[clubHienTai].cauHoi;
+
+            const prompt = `Bạn là một giáo viên tiếng Anh chuyên luyện thi Aptis.
+            YÊU CẦU BẮT BUỘC: ĐI THẲNG VÀO KẾT QUẢ, KHÔNG chào hỏi, không lải nhải nhận xét chung chung.
+            
+            Học viên đang trả lời cho đề bài Part 2 sau: "${cauHoiHienTai}"
+            
+            Hãy trả về kết quả theo đúng format sau:
+            
+            🎯 **DỰ KIẾN BAND ĐIỂM:** [Đánh giá bài viết này đang ở mức A1, A2, B1 hay B2 dựa trên từ vựng và ngữ pháp]
+
+            📝 **ĐÁNH GIÁ CHI TIẾT:**
+            * **Grammar:** [Chỉ lỗi sai và sửa lại]
+            * **Vocabulary:** [Chỉ lỗi chính tả/dùng từ và gợi ý từ vựng hay hơn]
+            * **Cohesion:** [Nhận xét sự mạch lạc, từ nối]
+            * **Task Fulfillment (Lạc đề hay không):** [Đánh giá xem học viên có trả lời đúng trọng tâm câu hỏi của đề bài không]
+
+            💡 **BÀI VĂN MẪU (Mục tiêu Band B1):** [Viết lại MỘT BÀI HOÀN CHỈNH dựa trên ý tưởng gốc của học viên, nhưng được nâng cấp từ vựng và cấu trúc lên đúng chuẩn Band B1. Giữ số lượng từ khoảng 20-30 từ cho phù hợp với Part 2 của Aptis].
+            
+            Bài làm của học viên:
+            "${baiViet}"`;
+
+            try {
+                // Gọi API Gemini 1.5 Flash
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error.message);
+                
+                // Hiển thị kết quả
+                const nhanXet = data.candidates[0].content.parts[0].text;
+                
+                // Dùng Regex để in đậm các dấu ** của Markdown do AI trả về (để HTML hiển thị đẹp)
+                const formattedNhanXet = nhanXet.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                ketQuaDiv.innerHTML = "<strong>🎯 BẢNG ĐIỂM & NHẬN XÉT:</strong><br><br>" + formattedNhanXet;
+
+            } catch (error) {
+                ketQuaDiv.innerHTML = "<strong style='color:red;'>❌ Lỗi rồi:</strong> " + error.message + "<br><br>👉 <em>Gợi ý: Kiểm tra lại xem copy đủ API Key chưa, hoặc có khoảng trắng bị dư không nhé!</em>";
+            } finally {
+                // Khôi phục nút bấm
+                btn.disabled = false;
+                btn.innerText = "🚀 Nộp bài & Chấm điểm";
+            }
+        }
+    </script>
+
+</body>
+</html>
