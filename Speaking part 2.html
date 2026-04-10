@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aptis Speaking Part 2 Practice - Target B1</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; line-height: 1.6; padding: 15px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2, h3 { color: #2c3e50; text-align: center; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; }
+        
+        /* Style cho ô Chọn Chủ Đề */
+        .topic-select { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 20px; 
+            font-size: 16px; 
+            border: 2px solid #007bff; 
+            border-radius: 8px; 
+            background-color: #f8f9fa; 
+            cursor: pointer; 
+            font-weight: bold; 
+            color: #2c3e50; 
+        }
+        .topic-select:focus { outline: none; border-color: #0056b3; box-shadow: 0 0 5px rgba(0,123,255,0.5); }
+
+        .question-box { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            background: #eef2f5; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            border-top: 5px solid #007bff; 
+        }
+        .question-image { width: 100%; border-radius: 5px; overflow: hidden; background: #ddd; text-align: center; }
+        .question-image img { width: 100%; max-height: 250px; object-fit: contain; display: block; }
+        .question-text ul { padding-left: 20px; margin-top: 10px; }
+        .question-text li { margin-bottom: 8px; font-weight: 500; font-size: 16px; }
+
+        .form-group { margin-bottom: 15px; }
+        input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .btn { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 16px; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-success:hover { background-color: #218838; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-danger:hover { background-color: #c82333; }
+        .btn-primary { background-color: #007bff; color: white; width: 100%; margin-top: 15px; }
+        .btn-primary:hover { background-color: #0069d9; }
+        .btn:disabled { background-color: #6c757d; cursor: not-allowed; opacity: 0.7; }
+        
+        #transcript-box { border: 1px solid #ced4da; padding: 15px; min-height: 120px; background-color: #e9ecef; border-radius: 5px; margin-bottom: 20px; font-size: 16px; }
+        #result-box { margin-top: 20px; padding: 20px; border: 1px solid #b8daff; background-color: #cce5ff; border-radius: 5px; display: none; white-space: pre-wrap; font-size: 15px;}
+        .timer { font-size: 36px; color: #dc3545; text-align: center; font-weight: bold; margin: 15px 0; font-family: monospace;}
+        #loading { display: none; text-align: center; margin-top: 15px; font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Luyện Thi Aptis Speaking - Part 2</h2>
+    <div class="subtitle">Mục tiêu: Band B1 | Thời gian nói: 45s</div>
+
+    <div class="form-group" style="background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba;">
+        <label for="api-key" style="color: #856404; display: block; margin-bottom: 5px;"><strong>🔑 Nhập Gemini API Key:</strong></label>
+        <div style="display: flex; gap: 10px;">
+            <input type="password" id="api-key" placeholder="Dán API Key vào đây...">
+            <button class="btn btn-success" style="white-space: nowrap; padding: 10px;" onclick="saveApiKey()">Lưu Key</button>
+        </div>
+    </div>
+
+    <select id="topic-selector" class="topic-select" onchange="loadSelectedQuestion()">
+        </select>
+
+    <div class="question-box">
+        <div class="question-image">
+            <img id="q-image" src="" alt="Speaking picture">
+        </div>
+        <div class="question-text">
+            <strong id="q-topic"></strong>
+            <ul>
+                <li id="q1"></li>
+                <li id="q2"></li>
+                <li id="q3"></li>
+            </ul>
+        </div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+    <div id="speaking-section">
+        <div class="timer" id="timer-display">00:45</div>
+        
+        <div style="text-align: center; margin-bottom: 20px; display: flex; justify-content: center; gap: 10px;">
+            <button id="btn-record" class="btn btn-success">🎙️ Bắt đầu (45s)</button>
+            <button id="btn-stop" class="btn btn-danger" disabled>🛑 Nộp sớm</button>
+        </div>
+
+        <p><strong>Nội dung bạn đang nói (Transcript):</strong></p>
+        <div id="transcript-box">Nhấn "Bắt đầu" và cho phép truy cập Micro để bắt đầu...</div>
+
+        <button id="btn-submit" class="btn btn-primary" disabled>📤 Gửi cho AI chấm điểm</button>
+        <div id="loading">Đang gửi cho AI chấm...Đợi khoảng 20s b ơi, nếu lâu quá thì reset ⏳</div>
+    </div>
+
+    <div id="result-box"></div>
+</div>
+
+<script>
+    // ---------------------------------------------------------
+    // 1. DATA: ĐÃ THAY BẰNG LINK ẢNH ONLINE ĐỂ TRÁNH LỖI LOCALHOST
+    // ---------------------------------------------------------
+    const questionSets = [
+        {
+            image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600&auto=format&fit=crop",
+            topic: "Chủ đề 1: Shopping with friends",
+            q1: "1. Describe the picture?",
+            q2: "2. Tell me about the last time you went shopping?",
+            q3: "3. Why do many people enjoy shopping with friends?"
+        },
+        {
+            image: "https://images.unsplash.com/photo-1556910103-1c02745a872e?q=80&w=600&auto=format&fit=crop",
+            topic: "Chủ đề 2: Family & Cooking",
+            q1: "1. Describe the picture?",
+            q2: "2. In your country, do parents care about their children?",
+            q3: "3. Why do parents care about their children?"
+        },
+        {
+            image: "https://images.unsplash.com/photo-1544928147-79a2dbc1f389?q=80&w=600&auto=format&fit=crop",
+            topic: "Chủ đề 3: Art Exhibition",
+            q1: "1. Describe the picture?",
+            q2: "2. What are the benefits of viewing artworks?",
+            q3: "3. Why do people like to go to art exhibitions?"
+        }
+    ];
+
+    const topicSelector = document.getElementById('topic-selector');
+
+    // Tự động tạo các lựa chọn (Options) vào ô Select
+    questionSets.forEach((q, index) => {
+        let option = document.createElement('option');
+        option.value = index;
+        option.text = q.topic;
+        topicSelector.appendChild(option);
+    });
+
+    // Hàm load câu hỏi khi người dùng chọn trong ô Dropdown
+    function loadSelectedQuestion() {
+        const selectedIndex = topicSelector.value;
+        const currentData = questionSets[selectedIndex];
+
+        // Cập nhật giao diện
+        document.getElementById('q-image').src = currentData.image;
+        document.getElementById('q-topic').innerText = currentData.topic;
+        document.getElementById('q1').innerText = currentData.q1;
+        document.getElementById('q2').innerText = currentData.q2;
+        document.getElementById('q3').innerText = currentData.q3;
+
+        // Reset lại các trạng thái ghi âm và kết quả
+        document.getElementById('transcript-box').innerHTML = 'Nhấn "Bắt đầu" và cho phép truy cập Micro để bắt đầu...';
+        document.getElementById('result-box').style.display = 'none';
+        document.getElementById('result-box').innerHTML = '';
+        document.getElementById('timer-display').innerText = "00:45";
+        document.getElementById('timer-display').style.color = "#dc3545";
+        
+        btnSubmit.disabled = true;
+        btnRecord.disabled = false;
+        btnStop.disabled = true;
+        finalTranscript = '';
+        
+        // Dừng ghi âm nếu đang chạy dở
+        if(typeof recognition !== 'undefined' && recognition) {
+            try { recognition.stop(); } catch(e) {}
+            clearInterval(timerInterval);
+        }
+    }
+
+    // Load câu hỏi đầu tiên ngay khi mở web
+    loadSelectedQuestion();
+
+    // ---------------------------------------------------------
+    // 2. LOGIC XỬ LÝ API VÀ GHI ÂM
+    // ---------------------------------------------------------
+    const apiKeyInput = document.getElementById('api-key');
+    if (localStorage.getItem('gemini_api_key')) {
+        apiKeyInput.value = localStorage.getItem('gemini_api_key');
+    }
+
+    function saveApiKey() {
+        const key = apiKeyInput.value.trim();
+        if (key) {
+            localStorage.setItem('gemini_api_key', key);
+            alert("Đã lưu API Key thành công!");
+        } else {
+            alert("Vui lòng nhập API Key!");
+        }
+    }
+
+    const btnRecord = document.getElementById('btn-record');
+    const btnStop = document.getElementById('btn-stop');
+    const btnSubmit = document.getElementById('btn-submit');
+    const transcriptBox = document.getElementById('transcript-box');
+    const timerDisplay = document.getElementById('timer-display');
+    
+    let recognition;
+    let finalTranscript = '';
+    let timerInterval;
+    let timeLeft = 45; 
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US'; 
+
+        recognition.onstart = function() {
+            btnRecord.disabled = true;
+            btnStop.disabled = false;
+            btnSubmit.disabled = true;
+            transcriptBox.innerHTML = '';
+            finalTranscript = '';
+            
+            timeLeft = 45;
+            timerDisplay.innerText = "00:" + timeLeft;
+            timerDisplay.style.color = "#28a745"; 
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = "00:" + (timeLeft < 10 ? "0" : "") + timeLeft;
+                
+                if (timeLeft <= 10) {
+                    timerDisplay.style.color = "#dc3545"; 
+                }
+
+                if (timeLeft <= 0) {
+                    recognition.stop(); 
+                }
+            }, 1000);
+        };
+
+        recognition.onresult = function(event) {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript + ' ';
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            transcriptBox.innerHTML = finalTranscript + '<span style="color: #999; font-style: italic;">' + interimTranscript + '</span>';
+        };
+
+        recognition.onerror = function(event) {
+            console.error("Lỗi Micro: ", event.error);
+            alert("Lỗi Micro: " + event.error + ". Hãy chắc chắn bạn đang dùng Google Chrome và đã cấp quyền Micro.");
+            clearInterval(timerInterval);
+            timerDisplay.innerText = "00:45";
+            btnRecord.disabled = false;
+            btnStop.disabled = true;
+        };
+
+        recognition.onend = function() {
+            clearInterval(timerInterval);
+            timerDisplay.style.color = "#dc3545";
+            btnRecord.disabled = false;
+            btnStop.disabled = true;
+            if (finalTranscript.trim() !== '') {
+                btnSubmit.disabled = false;
+            }
+        };
+
+        btnRecord.addEventListener('click', () => { 
+            try {
+                recognition.start(); 
+            } catch(e) {
+                alert("Không thể khởi động Micro. Có thể trình duyệt app này chặn ghi âm.");
+            }
+        });
+        btnStop.addEventListener('click', () => { recognition.stop(); });
+
+    } else {
+        transcriptBox.innerHTML = "<span style='color:red;'>Trình duyệt/Ứng dụng này không hỗ trợ thu âm.</span>";
+        btnRecord.disabled = true;
+    }
+
+    btnSubmit.addEventListener('click', async () => {
+        const apiKey = localStorage.getItem('gemini_api_key');
+        if (!apiKey) {
+            alert("Vui lòng nhập và lưu API Key trước khi gửi bài!");
+            return;
+        }
+
+        const submissionText = finalTranscript.trim();
+        const loadingDiv = document.getElementById('loading');
+        const resultBox = document.getElementById('result-box');
+        
+        btnSubmit.disabled = true;
+        loadingDiv.style.display = 'block';
+        resultBox.style.display = 'none';
+
+        const currentQ1 = document.getElementById('q1').innerText;
+        const currentQ2 = document.getElementById('q2').innerText;
+        const currentQ3 = document.getElementById('q3').innerText;
+
+        const promptText = `
+        Bạn là một giám khảo tiếng Anh chuyên nghiệp chấm thi chứng chỉ Aptis. 
+        Học viên đang thi Part 2 (Thời gian nói 45s). Mục tiêu của học viên là đạt Band B1.
+        
+        Đề bài học viên nhận được:
+        ${currentQ1}
+        ${currentQ2}
+        ${currentQ3}
+
+        Dưới đây là phần bóc băng (transcript) câu trả lời của học viên: 
+        "${submissionText}"
+        
+        Hãy nhận xét bằng TIẾNG VIỆT thật ngắn gọn, súc tích, trình bày rõ ràng bằng Markdown theo các mục sau:
+        1. **Bỏ qua phần chào hỏi rườm rà và đi thẳng vào trọng tâm.
+        2. **Đánh giá chung:** Câu trả lời này có trả lời đủ 3 câu hỏi không? Đạt khoảng band điểm nào (A1, A2, B1, B2 hay C1)?
+        3. **Điểm tốt:** Liệt kê các từ vựng hoặc cấu trúc câu tốt.
+        4. **Lỗi cần sửa & Cách khắc phục:** Chỉ ra lỗi sai ngữ pháp/từ vựng (nếu có) và cách nói tự nhiên hơn.
+        5. **Bài mẫu tham khảo (Band B1):** Cung cấp một bài nói mẫu trong khoảng 100-120 từ để học viên tham khảo.
+        `;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }]
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.error) {
+                resultBox.innerHTML = `<span style="color: red;">Lỗi từ API: ${data.error.message}</span>`;
+            } else {
+                let feedback = data.candidates[0].content.parts[0].text;
+                feedback = feedback.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*/g, '•'); 
+                resultBox.innerHTML = `<h3 style="color:#0056b3; margin-top:0;">📝 NHẬN XÉT CỦA GIÁM KHẢO</h3>${feedback}`;
+            }
+        } catch (error) {
+            resultBox.innerHTML = `<span style="color: red;">Lỗi kết nối: ${error.message}</span>`;
+        } finally {
+            loadingDiv.style.display = 'none';
+            resultBox.style.display = 'block';
+            btnSubmit.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
