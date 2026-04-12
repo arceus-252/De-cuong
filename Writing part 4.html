@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện Writing Aptis - Part 4</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+            background: linear-gradient(45deg, #051937, #004d7a, #008793, #00bf72, #a8eb12, #051937);
+            background-size: 400% 400%;
+            animation: cucQuang 60s ease infinite; /* Đổi màu nền cho Part 4 */
+            min-height: 100vh;
+        }
+        @keyframes cucQuang {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        #loginScreen {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .container {
+            max-width: 900px; /* Nới rộng form một chút vì Part 4 khá dài */
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: none; 
+        }
+        h2 { color: #2c3e50; text-align: center; }
+        input[type="password"], input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        textarea:disabled, select:disabled {
+            background-color: #ecf0f1;
+            cursor: not-allowed;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #8e44ad; /* Đổi màu nút cho ngầu */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover { background: #9b59b6; }
+        button:disabled { background: #95a5a6; cursor: not-allowed; }
+        
+        #ketQua {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 5px solid #8e44ad;
+            border-radius: 0 6px 6px 0;
+            display: none;
+            white-space: pre-wrap;
+        }
+        #timer {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e74c3c;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        /* Box chia phần làm bài */
+        .task-box {
+            background: #fdfbfb;
+            border: 1px solid #e1e8ed;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .task-box h4 { margin-top: 0; color: #2980b9; }
+        .word-count { text-align: right; font-size: 14px; color: #7f8c8d; margin-top: -10px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen">
+        <h2>🔒 Nhập mật khẩu (Part 4)</h2>
+        <input type="password" id="matKhauInput" placeholder="Nhập mật khẩu vào đây...">
+        <button onclick="kiemTraMatKhau()">Vào học 🚀</button>
+        <p id="loiMatKhau" style="color: red; display: none; margin-top: 10px;">Sai mật khẩu rồi lêu lêu 😛</p>
+    </div>
+
+    <div class="container" id="mainApp">
+        <h2>🔥 Writing B2 - PART 4 (Khó Nhất) <br>
+            <strong style="font-size: 0.8em; color: #e74c3c;"> Lưu ý: Bạn có 30 phút thôi. Phân bổ thời gian hợp lý nhé! </strong>
+        </h2>
+        
+        <div id="timer"> 30:00 </div>
+        
+        <label for="geminiApiKey"><strong>Mã bí mật (API Key):</strong></label>
+        <input type="password" id="geminiApiKey" placeholder="Dán API Key vào đây...">
+        
+        <div style="margin-bottom: 15px;">
+            <label for="chonClub"><strong>📚 Chọn câu lạc bộ:</strong></label>
+            <select id="chonClub" onchange="doiDeBai()" style="border: 2px solid #8e44ad;">
+                <option value="travel">✈️ Travel Club</option>
+                <option value="book">📖 Book Club</option>
+                <option value="sports">🏃‍♂️ Sports Club</option>
+                <option value="art">🎨 Art Club</option>
+
+            </select>
+        </div>
+
+        <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 5px solid #ffc107;">
+            <strong>🚨 Tình huống (Situation):</strong><br>
+            <em id="tinhHuong" style="color: #2c3e50; font-size: 1.1em;">You are a member of a travel club. You received an email stating that the upcoming club trip has been cancelled because the travel agency went bankrupt, and the membership fee will be doubled next year to cover the loss.</em>
+        </div>
+
+        <div class="task-box">
+            <h4>✉️ Task 1: Write to a friend (Informal)</h4>
+            <p>Write a short email to your friend. Tell your friend your feelings about this and what you plan to do.. Write <strong>about 50 words</strong>.</p>
+            <textarea id="baiVietBan" rows="4" placeholder="Hi [Tên bạn], gõ bài làm của bạn vào đây..." oninput="demTu('baiVietBan', 'soTuBan')"></textarea>
+            <div class="word-count">Số từ: <strong id="soTuBan" style="color: #2980b9;">0</strong> / ~50</div>
+        </div>
+
+        <div class="task-box">
+            <h4>🏛️ Task 2: Write to the President (Formal)</h4>
+            <p>Write an email to the president of the club. Tell them your thoughts about this and what you would like to do. Write <strong>120-150 words</strong>.</p>
+            <textarea id="baiVietTrangTrong" rows="8" placeholder="Dear Sir/Madam/mannager, gõ bài làm của bạn vào đây..." oninput="demTu('baiVietTrangTrong', 'soTuTrangTrong')"></textarea>
+            <div class="word-count">Số từ: <strong id="soTuTrangTrong" style="color: #2980b9;">0</strong> / 120-150</div>
+        </div>
+        
+        <button id="btnNopBai" onclick="chamBaiWriting()">🚀 Nộp bài Part 4 & Chấm điểm</button>
+        
+        <div id="ketQua"></div>
+    </div>
+
+    <script>
+        // --- 1. XỬ LÝ ĐĂNG NHẬP ---
+        const matKhauDung = "Bsi Hiep B2 Aptis"; 
+        
+        function kiemTraMatKhau() {
+            const nhapVao = document.getElementById('matKhauInput').value;
+            if (nhapVao === matKhauDung) {
+                document.getElementById('loginScreen').style.display = "none";
+                document.getElementById('mainApp').style.display = "block";
+                batDauDemGio(); 
+            } else {
+                document.getElementById('loiMatKhau').style.display = "block";
+            }
+        }
+
+        document.getElementById("matKhauInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                kiemTraMatKhau();
+            }
+        });
+
+        // --- 2. XỬ LÝ ĐỒNG HỒ 30 PHÚT ---
+        let countdownInterval;
+        function batDauDemGio() {
+            clearInterval(countdownInterval); 
+            let duration = 60 * 30; // 30 phút
+            let display = document.querySelector('#timer');
+            display.style.color = "#e74c3c";
+
+            countdownInterval = setInterval(function () {
+                let minutes = parseInt(duration / 60, 10);
+                let seconds = parseInt(duration % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--duration < 0) {
+                    clearInterval(countdownInterval);
+                    display.textContent = "Hết giờ! Bỏ bút xuống!";
+                    display.style.color = "#2ecc71";
+                }
+            }, 1000);
+        }
+
+        // --- 3. DỮ LIỆU ĐỀ BÀI (PART 4) ---
+        const khoDeBai = {
+            "travel": { 
+                tinhHuong: "You are a member of a travel club. You received an email from the club manager stating that the upcoming summer trip has been cancelled due to lack of funds. Furthermore, membership fees will increase by 20% next month."
+            },
+            "book": { 
+                tinhHuong: "You are a member of a book club. You just received an email saying that the club will no longer provide free physical books. Members now have to buy their own books, and the weekly meetings are moved to Sunday morning at 6 AM."
+            },
+            "sports": { 
+                tinhHuong: "You are a member of a sports club. The club manager emailed to announce that the main swimming pool and gym will be closed for renovation for 6 months, but members still have to pay the full monthly fee."
+            },
+            "art": { 
+                tinhHuong: "Dear all members, The Art Club is organizing a talk to the public to attract more attention. We are going to invite an artist to give a talk to members. As a member of our club, could you give us an artist to join our talk and what topic should they share to gain more attention. We would like to have more both young and elderly members."
+            }
+
+        };
+
+        function doiDeBai() {
+            const clubDuocChon = document.getElementById('chonClub').value;
+            document.getElementById('tinhHuong').innerText = khoDeBai[clubDuocChon].tinhHuong;
+            
+            // Xóa dữ liệu cũ
+            document.getElementById('baiVietBan').value = "";
+            document.getElementById('baiVietTrangTrong').value = "";
+            document.getElementById('soTuBan').innerText = "0";
+            document.getElementById('soTuTrangTrong').innerText = "0";
+            document.getElementById('ketQua').style.display = "none";
+            
+            batDauDemGio(); 
+        }
+
+        // --- 4. HÀM ĐẾM TỪ (Dùng chung cho 2 ô) ---
+        function demTu(idTextarea, idHienThi) {
+            const text = document.getElementById(idTextarea).value.trim();
+            const wordCount = text === "" ? 0 : text.split(/\s+/).length;
+            document.getElementById(idHienThi).innerText = wordCount;
+        }
+
+        window.onload = function() {
+            const savedKey = localStorage.getItem('myGeminiKey');
+            if(savedKey) document.getElementById('geminiApiKey').value = savedKey;
+        };
+
+        // --- 5. CHẤM BÀI BẰNG AI ---
+        async function chamBaiWriting() {
+            const apiKey = document.getElementById('geminiApiKey').value.trim();
+            const baiBan = document.getElementById('baiVietBan').value.trim();
+            const baiTrangTrong = document.getElementById('baiVietTrangTrong').value.trim();
+            const ketQuaDiv = document.getElementById('ketQua');
+            const btn = document.getElementById('btnNopBai');
+
+            if (!apiKey) return alert("Quên nhập mã bí mật (API Key) kìa!");
+            if (!baiBan || !baiTrangTrong) return alert("Bạn phải viết đủ chữ cho cả 2 bài (thư cho bạn và thư trang trọng) thì mới được nộp nhá, cố lên");
+
+            localStorage.setItem('myGeminiKey', apiKey);
+
+            btn.disabled = true;
+            document.getElementById('baiVietBan').disabled = true;
+            document.getElementById('baiVietTrangTrong').disabled = true;
+            document.getElementById('chonClub').disabled = true;
+            
+            btn.innerText = "⏳ Đợi 1 tí ... (khoảng 1 phút)";
+            ketQuaDiv.style.display = "block";
+            ketQuaDiv.innerHTML = "<em>Đang gửi 2 lá thư cho AI chấm...</em>";
+
+            const tinhHuongHienTai = document.getElementById('tinhHuong').innerText;
+
+            const prompt = `Bạn là một giám khảo chuyên chấm thi Aptis Writing. Học viên vừa hoàn thành Writing Part 4.
+            YÊU CẦU: Đi thẳng vào kết quả, định dạng bằng Markdown, KHÔNG lải nhải dông dài.
+
+            Tình huống đề bài (Situation): "${tinhHuongHienTai}"
+            
+            Task 1 (Viết cho bạn bè - Informal): "${baiBan}"
+            Task 2 (Viết cho chủ tịch/quản lý - Formal): "${baiTrangTrong}"
+            
+            Hãy chấm theo format sau:
+            
+            🎯 **DỰ KIẾN BAND ĐIỂM TỔNG PART 4:** [A1, A2, B1, B2 hay C]
+
+            📝 **NHẬN XÉT TASK 1 (INFORMAL - CHO BẠN BÈ):**
+            * **Độ dài:** [Đánh giá số lượng từ có hợp lý quanh mốc 50 từ không. Nếu dưới 45 từ, hãy nhắc nhở học viên bài viết hơi ngắn và cần thêm 1-2 câu cảm xúc. Nếu quá 60 từ thì nhắc nhở nên viết súc tích lại.]
+            * **Register (Văn phong):** [Học viên có dùng đúng văn phong suồng sã, thân mật không?]
+            * **Grammar & Vocab:** [Chỉ ra lỗi sai nếu có và gợi ý cách diễn đạt tự nhiên hơn.]
+
+            📝 **NHẬN XÉT TASK 2 (FORMAL - CHO CHỦ TỊCH):**
+            * **Độ dài:** [Đánh giá quanh mốc 120-150 từ]
+            * **Register (Văn phong):** [Học viên có dùng đúng văn phong trang trọng, lịch sự, có cấu trúc mở/kết thư chuẩn không? ĐÂY LÀ TIÊU CHÍ QUAN TRỌNG NHẤT]
+            * **Task Fulfillment:** [Có thể hiện sự thất vọng và đưa ra gợi ý giải quyết không?]
+            * **Grammar & Vocab:** [Chỉ ra lỗi sai, gợi ý từ vựng cao cấp (B1/B2) hơn]
+
+            💡 **BÀI MẪU TASK 2 (Chuẩn B1/B2):** [Viết một bài mẫu khoảng 130 từ cho Task 2 dựa trên tình huống trên, sử dụng cấu trúc formal email xuất sắc].`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+                
+                localStorage.setItem('lanNopCuoiPart4', Date.now());
+
+                const nhanXet = data.candidates[0].content.parts[0].text;
+                const formattedNhanXet = nhanXet.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                ketQuaDiv.innerHTML = "<strong>🎯 BẢNG ĐIỂM PART 4:</strong><br><br>" + formattedNhanXet;
+
+            } catch (error) {
+                ketQuaDiv.innerHTML = "<strong style='color:red;'>❌ Lỗi rồi:</strong> " + error.message;
+            } finally {
+                btn.disabled = false;
+                document.getElementById('baiVietBan').disabled = false;
+                document.getElementById('baiVietTrangTrong').disabled = false;
+                document.getElementById('chonClub').disabled = false;
+                btn.innerText = "🚀 Nộp bài Part 4 & Chấm điểm";
+            }
+        }
+    </script>
+</body>
+</html>
