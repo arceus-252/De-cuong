@@ -49,7 +49,13 @@
     </style>
 </head>
 <body>
-
+    <div id="loginScreen">
+        <h2>🔒 Nhập mật khẩu</h2>
+        <p>Nhập pass bên dưới hoặc là bị kick</p>
+        <input type="password" id="matKhauInput" placeholder="Nhập mật khẩu vào đây...">
+        <button onclick="kiemTraMatKhau()">Vào test</button>
+        <p id="loiMatKhau" style="color: red; display: none; margin-top: 10px;">Sai mật khẩu rồi lêu lêu ahihi 😛</p>
+    </div>
 <div class="container">
     <h2>Luyện Thi Aptis Speaking - Part 2</h2>
     <div class="subtitle">Mục tiêu: Cố được B2 | Thời gian nói: 45s</div>
@@ -97,6 +103,28 @@
 </div>
 
 <script>
+           // --- 1. XỬ LÝ ĐĂNG NHẬP ---
+        const matKhauDung = "Bsi Hiep B2 Aptis"; 
+        
+        function kiemTraMatKhau() {
+            const nhapVao = document.getElementById('matKhauInput').value;
+            if (nhapVao === matKhauDung) {
+                document.getElementById('loginScreen').style.display = "none";
+                document.getElementById('mainApp').style.display = "block";
+                batDauDemGio(); // Chỉ bắt đầu đếm giờ khi đã vào trong
+            } else {
+                document.getElementById('loiMatKhau').style.display = "block";
+            }
+        }
+
+        // Bắt sự kiện ấn Enter để đăng nhập
+        document.getElementById("matKhauInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                kiemTraMatKhau();
+            }
+        });
+
     const apiKeyInput = document.getElementById('api-key');
     if (localStorage.getItem('gemini_api_key')) {
         apiKeyInput.value = localStorage.getItem('gemini_api_key');
