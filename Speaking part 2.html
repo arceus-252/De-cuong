@@ -16,11 +16,14 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             text-align: center;
         }
-        /* Sửa ở đây: Mặc định ẩn giao diện chính đi */
         .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; }
         h2, h3 { color: #2c3e50; text-align: center; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; }
         
+        /* Style cho phần chọn đề thi */
+        .topic-selector-container { margin-bottom: 20px; text-align: center; }
+        select { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; width: 100%; max-width: 400px; cursor: pointer; background-color: #fff; }
+
         .question-box { 
             display: flex; 
             flex-direction: column; 
@@ -78,12 +81,22 @@
         </div>
     </div>
 
+    <div class="topic-selector-container">
+        <select id="topic-select">
+            <option value="shopping">Topic 1: Shopping</option>
+            <option value="artwork">Topic 2: Art & Culture</option>
+            <option value="vacation">Topic 3: Vacation</option>
+            <option value="healthcare">Topic 4: Healthcare</option>
+            <option value="crowded">Topic 5: Crowded Places</option>
+        </select>
+    </div>
+
     <div class="question-box">
         <div class="question-image">
-            <img src="https://raw.githubusercontent.com/arceus-252/-nh/refs/heads/main/Wentshopping.jpeg" alt="Shopping picture">
+            <img id="display-image" src="https://raw.githubusercontent.com/arceus-252/-nh/refs/heads/main/Wentshopping.jpeg" alt="Topic Image">
         </div>
         <div class="question-text">
-            <strong>Topic: Shopping</strong>
+            <strong id="display-title">Topic: Shopping</strong>
             <ul>
                 <li id="q1">1. Describe the picture?</li>
                 <li id="q2">2. Tell me the last time you went shopping?</li>
@@ -113,6 +126,60 @@
 </div>
 
 <script>
+    // --- 0. DỮ LIỆU CÁC ĐỀ THI ---
+    const topicsData = {
+        "shopping": {
+            title: "Topic: Shopping",
+            image: "https://raw.githubusercontent.com/arceus-252/-nh/refs/heads/main/Wentshopping.jpeg",
+            q1: "1. Describe the picture?",
+            q2: "2. Tell me the last time you went shopping?",
+            q3: "3. Why do some people dislike busy places?"
+        },
+        "artwork": {
+            title: "Topic: Art & Culture",
+            image: "https://raw.githubusercontent.com/arceus-252/-nh/refs/heads/main/Artwork.jpeg",
+            q1: "1. Describe the picture?",
+            q2: "2. Do you often visit art galleries or museums?",
+            q3: "3. How does art influence our daily lives?"
+        },
+        "vacation": {
+            title: "Topic: Vacation",
+            image: "https://raw.githubusercontent.com/arceus-252/-nh/refs/heads/main/vacation.jpeg",
+            q1: "1. Describe the picture?",
+            q2: "2. What was the best vacation you have ever had?",
+            q3: "3. Why is it important for people to take holidays?"
+        },
+        "healthcare": {
+            title: "Topic: Healthcare",
+            image: "https://raw.githubusercontent.com/arceus-252/-nh/refs/heads/main/Takecare.jpeg",
+            q1: "1. Describe the picture?",
+            q2: "2. Who usually takes care of you when you are sick?",
+            q3: "3. What should people do to maintain a healthy lifestyle?"
+        },
+        "crowded": {
+            title: "Topic: Crowded Places",
+            image: "https://raw.githubusercontent.com/arceus-252/-nh/refs/heads/main/Crownd.jpeg",
+            q1: "1. Describe the picture?",
+            q2: "2. Have you ever been in a very crowded place?",
+            q3: "3. What are the disadvantages of living in a big city?"
+        }
+    };
+
+    // Logic thay đổi giao diện khi chọn đề thi mới
+    document.getElementById('topic-select').addEventListener('change', function() {
+        const selectedTopic = topicsData[this.value];
+        document.getElementById('display-image').src = selectedTopic.image;
+        document.getElementById('display-title').innerText = selectedTopic.title;
+        document.getElementById('q1').innerText = selectedTopic.q1;
+        document.getElementById('q2').innerText = selectedTopic.q2;
+        document.getElementById('q3').innerText = selectedTopic.q3;
+        
+        // Reset lại khung kết quả và thu âm mỗi khi đổi đề
+        document.getElementById('result-box').style.display = 'none';
+        document.getElementById('transcript-box').innerHTML = 'Lưu ý: Nhấn "Bắt đầu" và cho phép truy cập Micro để bắt đầu';
+        document.getElementById('btn-submit').disabled = true;
+    });
+
     // --- 1. XỬ LÝ ĐĂNG NHẬP ---
     const matKhauDung = "Bsi Hiep B2 Aptis"; 
     
@@ -121,13 +188,11 @@
         if (nhapVao === matKhauDung) {
             document.getElementById('loginScreen').style.display = "none";
             document.getElementById('mainApp').style.display = "block";
-            // Đã xóa hàm batDauDemGio() gây lỗi ở đây
         } else {
             document.getElementById('loiMatKhau').style.display = "block";
         }
     }
 
-    // Bắt sự kiện ấn Enter để đăng nhập
     document.getElementById("matKhauInput").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
@@ -162,10 +227,6 @@
     let timerInterval;
     let timeLeft = 45; 
     let isStoppedManually = false;
-
-    const question1 = document.getElementById('q1').innerText;
-    const question2 = document.getElementById('q2').innerText;
-    const question3 = document.getElementById('q3').innerText;
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -274,6 +335,11 @@
         const loadingDiv = document.getElementById('loading');
         const resultBox = document.getElementById('result-box');
         
+        // Lấy bộ câu hỏi của đề HIỆN TẠI trên màn hình để gửi cho AI
+        const currentQ1 = document.getElementById('q1').innerText;
+        const currentQ2 = document.getElementById('q2').innerText;
+        const currentQ3 = document.getElementById('q3').innerText;
+
         btnSubmit.disabled = true;
         loadingDiv.style.display = 'block';
         resultBox.style.display = 'none';
@@ -283,9 +349,9 @@ Bạn là một giám khảo tiếng Anh chuyên nghiệp chấm thi chứng ch�
 Học viên đang thi Part 2 (Thời gian nói 45s). Mục tiêu của học viên là đạt Band B2.
 
 Đề bài học viên nhận được:
-${question1}
-${question2}
-${question3}
+${currentQ1}
+${currentQ2}
+${currentQ3}
 
 Dưới đây là phần bóc băng (transcript) câu trả lời của học viên: 
 "${submissionText}"
