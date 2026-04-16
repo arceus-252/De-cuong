@@ -182,7 +182,7 @@
             <div class="passage-box">
                 <strong>B.</strong> "Emilia: My mother was very involved with local charities,"
                 <br><button class="toggle-btn" onclick="toggleMnemonic(this)">Hiện / Ẩn mẹo nhớ</button>
-                <div class="mnemonic">Mẹo nhớ: Mẹo nhớ: Mẹ (mother) kết bạn (make friends) thông qua công việc (career)</div>
+                <div class="mnemonic">Mẹo nhớ: Mẹ (mother) kết bạn (make friends) thông qua công việc (career)</div>
             </div>
             <div class="passage-box">
                 <strong>C.</strong> "Noah: I'm busy with work these days"
@@ -248,7 +248,7 @@
     <div class="result-board"></div>
 </div>
     
-    <div class="topic-wrapper" id="topic-6">
+<div class="topic-wrapper" id="topic-6">
     <h2>Topic 6: Clean local park</h2>
     <div class="reading-section">
         <div class="passages">
@@ -288,22 +288,61 @@
 </div>
 
 <script>
-// Chạy hàm xáo trộn ngay khi mở web
-window.onload = function() {
-    document.getElementById('topic-1').style.display = 'block';
-    shuffleAllQuestions();
-};
-
-// Hàm xáo trộn vị trí câu hỏi cho tất cả các Topic
-function shuffleAllQuestions() {
+// Hàm xử lý xáo trộn toàn bộ (Cả đoạn văn A,B,C,D và câu hỏi)
+function shuffleAllData() {
     const allTopics = document.querySelectorAll('.topic-wrapper');
+    const letters = ['A', 'B', 'C', 'D'];
+
     allTopics.forEach(topic => {
+        // --- BƯỚC 1: Xử lý xáo trộn các Đoạn văn (Passages) ---
+        const passagesContainer = topic.querySelector('.passages');
+        const passageBoxes = Array.from(passagesContainer.querySelectorAll('.passage-box'));
+        
+        // Gán tên gốc (A, B, C, D) dựa theo vị trí lúc đầu
+        let passagesData = passageBoxes.map((box, index) => {
+            return {
+                element: box,
+                originalLetter: letters[index]
+            };
+        });
+
+        // Xáo trộn mảng đoạn văn
+        for (let i = passagesData.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [passagesData[i], passagesData[j]] = [passagesData[j], passagesData[i]];
+        }
+
+        // Bản đồ ánh xạ (Ví dụ: A cũ giờ thành C mới)
+        const mapping = {};
+        
+        // Gắn lại vào DOM và đổi tên chữ cái A,B,C,D theo vị trí mới
+        passagesData.forEach((data, index) => {
+            const newLetter = letters[index];
+            mapping[data.originalLetter] = newLetter; // Lưu lại sự thay đổi
+            
+            // Tìm thẻ <strong> để đổi thành chữ cái mới
+            const strongTag = data.element.querySelector('strong');
+            if(strongTag) {
+                strongTag.innerText = newLetter + ".";
+            }
+            
+            passagesContainer.appendChild(data.element);
+        });
+
+        // --- BƯỚC 2: Cập nhật đáp án & Xáo trộn Câu hỏi ---
         const questionsContainer = topic.querySelector('.questions');
-        // Lấy tất cả các câu hỏi bỏ vào mảng
         const questions = Array.from(questionsContainer.querySelectorAll('.question-item'));
         const checkBtn = questionsContainer.querySelector('.check-btn');
-        
-        // Thuật toán Fisher-Yates để đảo vị trí ngẫu nhiên
+
+        questions.forEach(q => {
+            // Đổi data-answer cũ thành data-answer mới dựa trên mapping
+            const oldAnswer = q.getAttribute('data-answer');
+            if (mapping[oldAnswer]) {
+                q.setAttribute('data-answer', mapping[oldAnswer]);
+            }
+        });
+
+        // Thuật toán xáo trộn vị trí câu hỏi
         for (let i = questions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [questions[i], questions[j]] = [questions[j], questions[i]];
@@ -313,6 +352,12 @@ function shuffleAllQuestions() {
         questions.forEach(q => questionsContainer.insertBefore(q, checkBtn));
     });
 }
+
+// Chạy hàm xáo trộn ngay khi mở web
+window.onload = function() {
+    document.getElementById('topic-1').style.display = 'block';
+    shuffleAllData(); // Gọi hàm xáo trộn tổng hợp mới
+};
 
 function changeTopic() {
     const allTopics = document.querySelectorAll('.topic-wrapper');
