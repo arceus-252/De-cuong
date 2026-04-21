@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ôn tủ Listening Aptis</title>
+    <style>
+        body {
+            background-color: #311b3d;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+        }
+
+        .quiz-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Thanh điều hướng câu hỏi */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .nav-btn {
+            background-color: #5c3a6e;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover:not(:disabled) { background-color: #724988; }
+        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .question-box {
+            background-color: #4a2b5a;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            line-height: 1.4;
+        }
+
+        .options-container {
+            display: flex;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .options-container.vertical { flex-direction: column; }
+
+        .option {
+            flex: 1;
+            padding: 30px 15px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.3s, box-shadow 0.2s, background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            color: white;
+            border: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+
+        .option-a { background-color: #2c7bb6; }
+        .option-b { background-color: #2a9d8f; }
+        .option-c { background-color: #e9a02b; }
+
+        .option.correct {
+            background-color: #4CAF50 !important;
+            border-color: #81c784;
+            transform: scale(1.02);
+        }
+
+        .option.incorrect {
+            background-color: #f44336 !important;
+            opacity: 0.8;
+        }
+
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .toggle-layout-btn {
+            background-color: #5c3a6e;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .toggle-layout-btn:hover { background-color: #724988; }
+
+        .result-message {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 24px;
+            font-weight: bold;
+            min-height: 35px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn" onclick="changeQuestion(-1)">⬅ Câu trước</button>
+        <span id="questionCounter">Câu 1 / ...</span>
+        <button class="nav-btn" id="nextBtn" onclick="changeQuestion(1)">Câu tiếp theo ➡</button>
+    </div>
+
+    <div class="question-box" id="questionText">Đang tải câu hỏi...</div>
+
+    <div class="options-container" id="optionsContainer">
+        </div>
+
+    <div class="controls">
+        <button class="toggle-layout-btn" onclick="toggleLayout()">
+            🔁 Chuyển sang bố cục dọc
+        </button>
+    </div>
+
+    <div class="result-message" id="resultMessage"></div>
+</div>
+
+<script>
+    // =====================================================================
+    // KHO DỮ LIỆU CÂU HỎI (Đã có 25 câu)
+    // =====================================================================
+    const quizData = [
+        // --- 15 câu cũ ---
+        {
+            question: "1. How much is the egg?",
+            options: [
+                { text: "A. £1.50", isCorrect: true, class: "option-a" },
+                { text: "B. £2.50", isCorrect: false, class: "option-b" },
+                { text: "C. £0.50", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "2. How much are the cleaning products?",
+            options: [
+                { text: "A. £1.50", isCorrect: true, class: "option-a" },
+                { text: "B. £2.50", isCorrect: false, class: "option-b" },
+                { text: "C. £3.50", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "3. How much does Lalia's bus cost?",
+            options: [
+                { text: "A. £3,20", isCorrect: false, class: "option-a" },
+                { text: "B. £2,50", isCorrect: true, class: "option-b" },
+                { text: "C. £1,50", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "4. How much is the laptop",
+            options: [
+                { text: "A. £150", isCorrect: false, class: "option-a" },
+                { text: "B. £250", isCorrect: true, class: "option-b" },
+                { text: "C. £450", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "5. How much is the small car?",
+            options: [
+                { text: "A. £1,250", isCorrect: false, class: "option-a" },
+                { text: "B. £2,250", isCorrect: false, class: "option-b" },
+                { text: "C. £3,250", isCorrect: true, class: "option-c" }
+            ]
+        },
+        {
+            question: "6. How many clients are Americans?",
+            options: [
+                { text: "A. One", isCorrect: true, class: "option-a" },
+                { text: "B. Two", isCorrect: false, class: "option-b" },
+                { text: "C. Three", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "7. Which platform to wait for the train?",
+            options: [
+                { text: "A. One", isCorrect: false, class: "option-a" },
+                { text: "B. Two", isCorrect: true, class: "option-b" },
+                { text: "C. Three", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "8. Press number to buy computer",
+            options: [
+                { text: "A. One", isCorrect: false, class: "option-a" },
+                { text: "B. Two", isCorrect: false, class: "option-b" },
+                { text: "C. Three", isCorrect: true, class: "option-c" }
+            ]
+        },
+        {
+            question: "9. How many seats do they need?",
+            options: [
+                { text: "A. 15", isCorrect: false, class: "option-a" },
+                { text: "B. 18", isCorrect: false, class: "option-b" },
+                { text: "C. 20", isCorrect: true, class: "option-c" }
+            ]
+        },
+        {
+            question: "10. How many chairs does the girl prepare for the meeting?",
+            options: [
+                { text: "A. 15", isCorrect: false, class: "option-a" },
+                { text: "B. 18", isCorrect: false, class: "option-b" },
+                { text: "C. 20", isCorrect: true, class: "option-c" }
+            ]
+        },
+        {
+            question: "11. How old is Stephanie/ the baby sister?",
+            options: [
+                { text: "A. 20", isCorrect: false, class: "option-a" },
+                { text: "B. 21", isCorrect: true, class: "option-b" },
+                { text: "C. 22", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "12. How many new houses are going to be built?",
+            options: [
+                { text: "A. 1000", isCorrect: false, class: "option-a" },
+                { text: "B. 2000", isCorrect: true, class: "option-b" },
+                { text: "C. 3500", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "13. How many people live in the town?",
+            options: [
+                { text: "A. 8000", isCorrect: false, class: "option-a" },
+                { text: "B. 10,000", isCorrect: true, class: "option-b" },
+                { text: "C. 12,000", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "14. Teleshop telephone number",
+            options: [
+                { text: "A. 20 10 30", isCorrect: true, class: "option-a" },
+                { text: "B. 20 30 10", isCorrect: false, class: "option-b" },
+                { text: "C. 30 20 10", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "15. How many copies did Freeze Frame magazine sell?",
+            options: [
+                { text: "A. Over 230,000 copies", isCorrect: false, class: "option-a" },
+                { text: "B. Over 250,000 copies", isCorrect: false, class: "option-b" },
+                { text: "C. Over 300,000 copies", isCorrect: true, class: "option-c" }
+            ]
+        },
+
+        // --- 10 câu mới (Chủ đề Thời gian) ---
+        {
+            question: "16. Ahmed meet Rose at...",
+            options: [
+                { text: "A. Quarter to eight", isCorrect: true, class: "option-a" },
+                { text: "B. Half past seven", isCorrect: false, class: "option-b" },
+                { text: "C. Quarter to seven", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "17. See Maria. When will he see her?",
+            options: [
+                { text: "A. At 9 AM on Sunday", isCorrect: true, class: "option-a" },
+                { text: "B. At 9 AM on Saturday", isCorrect: false, class: "option-b" },
+                { text: "C. At 10 AM on Friday", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "18. What time does the train leave?",
+            options: [
+                { text: "A. At 8:30", isCorrect: false, class: "option-a" },
+                { text: "B. At 9:15", isCorrect: true, class: "option-b" },
+                { text: "C. At 9:45", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "19. What time did the train depart?",
+            options: [
+                { text: "A. 9:30", isCorrect: true, class: "option-a" },
+                { text: "B. 8:30", isCorrect: false, class: "option-b" },
+                { text: "C. 7:30", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "20. Samia is going to meet friends. When are they going to meet?",
+            options: [
+                { text: "A. At 9:00", isCorrect: false, class: "option-a" },
+                { text: "B. At 9:30", isCorrect: false, class: "option-b" },
+                { text: "C. At 10:00", isCorrect: true, class: "option-c" }
+            ]
+        },
+        {
+            question: "21. When does the meeting start?",
+            options: [
+                { text: "A. At 9:10", isCorrect: false, class: "option-a" },
+                { text: "B. At 10:15", isCorrect: true, class: "option-b" },
+                { text: "C. At 10:30", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "22. What time does the football match start?",
+            options: [
+                { text: "A. 11 AM", isCorrect: false, class: "option-a" },
+                { text: "B. 1 PM", isCorrect: true, class: "option-b" },
+                { text: "C. 6 PM", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "23. The luch is ready? / What time do they want to meet?",
+            options: [
+                { text: "A. 11 PM", isCorrect: false, class: "option-a" },
+                { text: "B. 12 PM", isCorrect: false, class: "option-b" },
+                { text: "C. 2 PM", isCorrect: true, class: "option-c" }
+            ]
+        },
+        {
+            question: "24. When does she want to meet?",
+            options: [
+                { text: "A. Three o'clock", isCorrect: true, class: "option-a" },
+                { text: "B. four o'clock", isCorrect: false, class: "option-b" },
+                { text: "C. o'clock", isCorrect: false, class: "option-c" }
+            ]
+        },
+        {
+            question: "25. Jorge and Jose. When will they meet?",
+            options: [
+                { text: "A. 4:30", isCorrect: false, class: "option-a" },
+                { text: "B. 5:30", isCorrect: false, class: "option-b" },
+                { text: "C. 6:30", isCorrect: true, class: "option-c" }
+            ]
+        }
+    ];
+
+    // =====================================================================
+    // PHẦN LOGIC XỬ LÝ
+    // =====================================================================
+    let currentIndex = 0;
+
+    function loadQuestion(index) {
+        const qData = quizData[index];
+        
+        document.getElementById('questionText').innerText = qData.question;
+        document.getElementById('questionCounter').innerText = `Câu ${index + 1} / ${quizData.length}`;
+        document.getElementById('resultMessage').innerText = ""; 
+
+        document.getElementById('prevBtn').disabled = (index === 0);
+        document.getElementById('nextBtn').disabled = (index === quizData.length - 1);
+
+        const container = document.getElementById('optionsContainer');
+        container.innerHTML = ""; 
+
+        qData.options.forEach((opt, optIndex) => {
+            const div = document.createElement('div');
+            div.className = `option ${opt.class}`;
+            div.innerText = opt.text;
+            div.id = `opt-${index}-${optIndex}`;
+            
+            div.onclick = () => checkAnswer(div, opt.isCorrect, qData.options, index);
+            container.appendChild(div);
+        });
+    }
+
+    function checkAnswer(selectedElement, isCorrect, optionsData, questionIndex) {
+        const allOptions = document.querySelectorAll('.option');
+        const resultMessage = document.getElementById('resultMessage');
+
+        allOptions.forEach(option => option.classList.add('disabled'));
+
+        if (isCorrect) {
+            selectedElement.classList.add('correct');
+            selectedElement.classList.remove('disabled');
+            resultMessage.textContent = "🎉 Chính xác!";
+            resultMessage.style.color = "#4CAF50";
+        } else {
+            selectedElement.classList.add('incorrect');
+            resultMessage.textContent = "❌ Sai rồi!";
+            resultMessage.style.color = "#f44336";
+            
+            const correctOptIndex = optionsData.findIndex(opt => opt.isCorrect === true);
+            const correctElement = document.getElementById(`opt-${questionIndex}-${correctOptIndex}`);
+            if (correctElement) {
+                correctElement.classList.remove('disabled');
+                correctElement.classList.add('correct');
+            }
+        }
+    }
+
+    function changeQuestion(step) {
+        currentIndex += step;
+        if (currentIndex < 0) currentIndex = 0;
+        if (currentIndex >= quizData.length) currentIndex = quizData.length - 1;
+        loadQuestion(currentIndex);
+    }
+
+    function toggleLayout() {
+        const container = document.getElementById('optionsContainer');
+        container.classList.toggle('vertical');
+    }
+
+    window.onload = () => loadQuestion(0);
+
+</script>
+
+</body>
+</html>
