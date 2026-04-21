@@ -93,7 +93,7 @@
             <button id="btn-stop" class="btn btn-danger" style="margin-top:0;" disabled> Dừng</button>
         </div>
 
-        <p><strong>Nội dung bóc băng (Bạn có thể SỬA thủ công ở đây nếu máy nghe nhầm trước khi nộp):</strong></p>
+        <p><strong>Nội dung bóc băng (Có thể sửa thủ công ở bên dưới nếu thấy máy nghe nhầm):</strong></p>
         <textarea id="transcript-box" placeholder="Sau khi thu âm xong, chữ sẽ hiện ở đây..."></textarea>
 
         <button id="btn-submit" class="btn btn-primary" style="width: 100%;" disabled>📤 Gửi cho AI chấm </button>
@@ -219,7 +219,7 @@ document.getElementById("matKhauInput").addEventListener("keypress", function(ev
                 clearInterval(timerInterval);
                 if (mode === 'prep') {
                     // Hết giờ chuẩn bị -> Chuyển sang thu âm
-                    alert("Hết 60s chuẩn bị! Nhấn Bắt đầu thu âm ngay!");
+                    alert("Hết 60s chuẩn bị!  Bắt đầu nói đê!");
                     btnPrep.disabled = false;
                     btnRecord.disabled = false;
                     btnStop.disabled = true;
@@ -300,7 +300,7 @@ document.getElementById("matKhauInput").addEventListener("keypress", function(ev
             if (transcriptBox.value.trim() !== '') btnSubmit.disabled = false;
         });
     } else {
-        transcriptBox.value = "Trình duyệt không hỗ trợ thu âm. Vui lòng gõ tay hoặc dùng Chrome/Safari.";
+        transcriptBox.value = "Trình duyệt không hỗ trợ thu âm. Thử gõ tay hoặc dùng Chrome/Safari xem.";
     }
 
     // Cho phép gửi bài khi người dùng tự gõ text (không cần bấm thu âm)
@@ -315,7 +315,7 @@ document.getElementById("matKhauInput").addEventListener("keypress", function(ev
     // --- 3. GỬI PROMPT CHẤM ĐIỂM (Giữ mục tiêu B1) ---
     btnSubmit.addEventListener('click', async () => {
         const apiKey = localStorage.getItem('gemini_api_key');
-        if (!apiKey) return alert("Vui lòng nhập và lưu API Key trước khi gửi bài!");
+        if (!apiKey) return alert("Nhập và lưu API Key trước khi gửi bài!");
 
         const submissionText = transcriptBox.value.trim();
         const loadingDiv = document.getElementById('loading');
