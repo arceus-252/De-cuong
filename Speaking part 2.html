@@ -135,58 +135,51 @@
         document.getElementById('btn-submit').disabled = true;
     }
 
-    // pass đây
-const hashMatKhauDung = "246edcd1ddb9df57c6b9070f80bc2ee25b39bfba1052fb58fbc8d3132cf05d52";
+    // Đặt mật khẩu thẳng vào đây
+const matKhauDung = "25022002";
 
-async function maHoaSHA256(text) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(text);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function kiemTraMatKhau() {
+function kiemTraMatKhau() {
     const matKhauInput = document.getElementById('matKhauInput');
     const loiMatKhau = document.getElementById('loiMatKhau');
-    const nhapVao = matKhauInput.value.trim(); // Cắt khoảng trắng thừa
+    
+    // Lấy chữ vừa nhập và cắt khoảng trắng thừa ở 2 đầu (nếu có)
+    const nhapVao = matKhauInput.value.trim();
 
-    // Ẩn thông báo lỗi cũ đi mỗi lần bấm kiểm tra lại
+    // Ẩn dòng chữ báo lỗi đi mỗi lần bấm nút
     if (loiMatKhau) {
         loiMatKhau.style.display = "none";
     }
 
-    // Nếu người dùng chưa nhập gì thì không làm gì cả
+    // Nếu chưa nhập gì mà đã bấm thì bỏ qua
     if (!nhapVao) {
         return; 
     }
 
-    const hashNhapVao = await maHoaSHA256(nhapVao);
-
-    if (hashNhapVao === hashMatKhauDung) {
-        // Đăng nhập thành công
+    // Kiểm tra trực tiếp
+    if (nhapVao === matKhauDung) {
+        // Đúng pass -> Đổi màn hình
         document.getElementById('loginScreen').style.display = "none";
         document.getElementById('mainApp').style.display = "block";
-        matKhauInput.value = ''; 
-// Xóa trắng ô input cho gọn
+        matKhauInput.value = ''; // Dọn dẹp ô nhập
     } else {
-        // Sai mật khẩu
+        // Sai pass -> Hiện lỗi
         if (loiMatKhau) {
             loiMatKhau.style.display = "block";
             loiMatKhau.textContent = "Sai mật khẩu, vui lòng thử lại!";
         }
-        matKhauInput.value = ''; // Xóa mật khẩu bị sai đi để người dùng nhập lại nhanh hơn
-        matKhauInput.focus(); // Tự động đưa con trỏ chuột quay lại ô nhập
+        matKhauInput.value = ''; // Xóa chữ nhập sai
+        matKhauInput.focus(); // Đưa con trỏ chuột quay lại ô nhập
     }
 }
 
-// Bắt sự kiện ấn phím Enter để đăng nhập cho tiện
+// Giữ lại phần bấm Enter cho tiện
 document.getElementById("matKhauInput").addEventListener("keypress", function(event) {
     if (event.key === "Enter") {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của phím Enter (nếu nằm trong form)
+        event.preventDefault(); 
         kiemTraMatKhau();
     }
 });
+
 
     // --- 2. LƯU API VÀ TIMER CHUẨN BỊ / THU ÂM ---
     const apiKeyInput = document.getElementById('api-key');
