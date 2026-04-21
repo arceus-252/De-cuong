@@ -614,11 +614,11 @@
         if (isCorrect) {
             selectedElement.classList.add('correct');
             selectedElement.classList.remove('disabled');
-            resultMessage.textContent = "🎉 Chính xác!";
+            resultMessage.textContent = "Chính xác!";
             resultMessage.style.color = "#4CAF50";
         } else {
             selectedElement.classList.add('incorrect');
-            resultMessage.textContent = "❌ Sai rồi!";
+            resultMessage.textContent = "Sai !";
             resultMessage.style.color = "#f44336";
             
             const correctOptIndex = optionsData.findIndex(opt => opt.isCorrect === true);
