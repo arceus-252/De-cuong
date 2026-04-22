@@ -1406,7 +1406,7 @@
             if (userProgress[index] !== undefined) {
                 div.classList.add('disabled');
                 if (opt.isCorrect) div.classList.add('correct');
-                // Nếu sai thì hiện đỏ (tùy chọn, ở đây hiện theo logic ban đầu là chỉ highlight đáp án đúng)
+                // highlight đáp án đúng
             }
             
             div.onclick = () => checkAnswer(div, opt.isCorrect, qData.options, index);
