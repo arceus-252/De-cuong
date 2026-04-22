@@ -24,7 +24,46 @@
             box-sizing: border-box;
         }
 
-        /* Thanh điều hướng câu hỏi */
+        /* Thanh cuộn chọn câu hỏi */
+        .question-nav-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 8px;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: #724988 #311b3d;
+        }
+        .question-nav-scroll::-webkit-scrollbar { height: 6px; }
+        .question-nav-scroll::-webkit-scrollbar-thumb { background: #724988; border-radius: 10px; }
+
+        .nav-dot {
+            min-width: 40px;
+            height: 40px;
+            background-color: #5c3a6e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            flex-shrink: 0;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        .nav-dot.active { border: 2px solid #e9a02b; transform: scale(1.1); }
+        .nav-dot.correct { background-color: #4CAF50 !important; }
+        .nav-dot.incorrect { background-color: #f44336 !important; }
+
+        /* Điểm số */
+        .score-board {
+            text-align: right;
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #e9a02b;
+            font-weight: bold;
+        }
+
         .navigation {
             display: flex;
             justify-content: space-between;
@@ -112,11 +151,12 @@
 
         .controls {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between; /* Đổi sang giữa để nút reset và layout tách nhau */
             margin-top: 20px;
+            gap: 10px;
         }
 
-        .toggle-layout-btn {
+        .toggle-layout-btn, .reset-btn {
             background-color: #5c3a6e;
             color: white;
             border: none;
@@ -128,6 +168,8 @@
             display: flex; align-items: center; gap: 8px;
         }
 
+        .reset-btn { background-color: #8b4367; }
+        .reset-btn:hover { background-color: #a6517d; }
         .toggle-layout-btn:hover { background-color: #724988; }
 
         .result-message {
@@ -142,6 +184,8 @@
 <body>
 
 <div class="quiz-container">
+    <div class="question-nav-scroll" id="navScroll"></div>
+    <div class="score-board" id="scoreBoard">Điểm: 0 / 0</div>
 
     <div class="navigation">
         <button class="nav-btn" id="prevBtn" onclick="changeQuestion(-1)">⬅ Câu trước</button>
@@ -151,12 +195,14 @@
 
     <div class="question-box" id="questionText">Đang tải câu hỏi...</div>
 
-    <div class="options-container" id="optionsContainer">
-        </div>
+    <div class="options-container" id="optionsContainer"></div>
 
     <div class="controls">
+        <button class="reset-btn" onclick="resetCurrentQuestion()">
+            🔄 Làm lại câu này
+        </button>
         <button class="toggle-layout-btn" onclick="toggleLayout()">
-            🔁 Chuyển sang bố cục dọc
+            🔁 Chuyển bố cục
         </button>
     </div>
 
@@ -1005,10 +1051,50 @@
         }
     ];
 
-    // =====================================================================
-    // PHẦN LOGIC XỬ LÝ
+     // =====================================================================
+    // PHẦN LOGIC XỬ LÝ (BỔ SUNG RESET)
     // =====================================================================
     let currentIndex = 0;
+    let score = 0;
+    let userProgress = {}; // { index: true/false }
+
+    function createNavigation() {
+        const navScroll = document.getElementById('navScroll');
+        navScroll.innerHTML = "";
+        quizData.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'nav-dot';
+            dot.innerText = index + 1;
+            dot.id = `nav-dot-${index}`;
+            dot.onclick = () => {
+                currentIndex = index;
+                loadQuestion(currentIndex);
+            };
+            navScroll.appendChild(dot);
+        });
+    }
+
+    function updateNavStyles() {
+        const dots = document.querySelectorAll('.nav-dot');
+        dots.forEach((dot, index) => {
+            dot.classList.remove('active');
+            if (index === currentIndex) dot.classList.add('active');
+            
+            dot.classList.remove('correct', 'incorrect');
+            if (userProgress[index] === true) dot.classList.add('correct');
+            else if (userProgress[index] === false) dot.classList.add('incorrect');
+        });
+
+        const activeDot = document.getElementById(`nav-dot-${currentIndex}`);
+        if (activeDot) {
+            activeDot.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    }
+
+    function updateScoreDisplay() {
+        const scoreBoard = document.getElementById('scoreBoard');
+        scoreBoard.innerText = `Điểm: ${score} / ${Object.keys(userProgress).length}`;
+    }
 
     function loadQuestion(index) {
         const qData = quizData[index];
@@ -1029,18 +1115,31 @@
             div.innerText = opt.text;
             div.id = `opt-${index}-${optIndex}`;
             
+            if (userProgress[index] !== undefined) {
+                div.classList.add('disabled');
+                if (opt.isCorrect) div.classList.add('correct');
+                // Nếu sai thì hiện đỏ (tùy chọn, ở đây hiện theo logic ban đầu là chỉ highlight đáp án đúng)
+            }
+            
             div.onclick = () => checkAnswer(div, opt.isCorrect, qData.options, index);
             container.appendChild(div);
         });
+
+        updateNavStyles();
     }
 
     function checkAnswer(selectedElement, isCorrect, optionsData, questionIndex) {
+        if (userProgress[questionIndex] !== undefined) return;
+
         const allOptions = document.querySelectorAll('.option');
         const resultMessage = document.getElementById('resultMessage');
 
         allOptions.forEach(option => option.classList.add('disabled'));
 
+        userProgress[questionIndex] = isCorrect;
+
         if (isCorrect) {
+            score++;
             selectedElement.classList.add('correct');
             selectedElement.classList.remove('disabled');
             resultMessage.textContent = "Chính xác!";
@@ -1057,6 +1156,35 @@
                 correctElement.classList.add('correct');
             }
         }
+
+        updateScoreDisplay();
+        updateNavStyles();
+
+        // Tự động nhảy sau 0.75s
+        setTimeout(() => {
+            // Kiểm tra nếu người dùng vẫn ở câu cũ thì mới nhảy (tránh lỗi nếu vừa nhấn reset)
+            if (currentIndex === questionIndex && currentIndex < quizData.length - 1 && userProgress[questionIndex] !== undefined) {
+                changeQuestion(1);
+            }
+        }, 750);
+    }
+
+    // --- BỔ SUNG HÀM RESET ---
+    function resetCurrentQuestion() {
+        if (userProgress[currentIndex] === undefined) return; // Chưa làm thì không cần reset
+
+        // Trừ điểm nếu câu đang đúng
+        if (userProgress[currentIndex] === true) {
+            score--;
+        }
+
+        // Xóa trạng thái của câu này
+        delete userProgress[currentIndex];
+
+        // Load lại câu hỏi
+        loadQuestion(currentIndex);
+        updateScoreDisplay();
+        updateNavStyles();
     }
 
     function changeQuestion(step) {
@@ -1071,7 +1199,11 @@
         container.classList.toggle('vertical');
     }
 
-    window.onload = () => loadQuestion(0);
+    window.onload = () => {
+        createNavigation();
+        loadQuestion(0);
+        updateScoreDisplay();
+    };
 
 </script>
 
